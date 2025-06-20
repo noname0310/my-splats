@@ -158,10 +158,28 @@ export async function buildSceneEntry(sceneList: [string, () => Promise<ISceneBu
         item.textContent = sceneList[i][0];
         item.onclick = async(): Promise<void> => {
             if (blockLoad) return;
-            blockLoad = true;
-            await loader.loadScene(await sceneList[i][1]());
-            blockLoad = false;
+            location.hash = `#${i}`;
         };
         list.appendChild(item);
     }
+
+    async function loadScene(): Promise<void> {
+        if (blockLoad) return;
+        const hash = location.hash;
+        console.log("Loading scene from hash:", hash);
+        if (hash) {
+            const index = parseInt(hash.slice(1), 10);
+            if (!isNaN(index) && index >= 0 && index < sceneList.length) {
+                blockLoad = true;
+                listContainerToggle.click();
+                loader.loadScene(await sceneList[index][1]()).then(() => {
+                    blockLoad = false;
+                });
+            }
+        }
+    }
+    loadScene();
+    window.onhashchange = (): void => {
+        loadScene();
+    };
 }
